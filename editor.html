@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#ffffff" />
+<title>课表编辑器</title>
+<style>
+:root{
+  --bg:#f5f6f8; --card:#fff; --ink:#111827; --muted:#6b7280; --line:#e8eaef;
+  --accent:#2563eb; --ok:#059669; --warn:#b45309;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;-webkit-text-size-adjust:100%}
+.wrap{max-width:780px;margin:0 auto;padding:22px 14px calc(48px + env(safe-area-inset-bottom))}
+h1{font-size:22px;margin:0 0 4px;letter-spacing:-.02em}
+.sub{color:var(--muted);font-size:13.5px;margin:0 0 22px}
+h2{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.1em;margin:30px 2px 11px;display:flex;align-items:center;justify-content:space-between}
+.card{background:var(--card);border-radius:16px;padding:16px;box-shadow:0 1px 2px rgba(16,24,40,.05),0 1px 3px rgba(16,24,40,.04)}
+label.field{display:flex;align-items:center;gap:10px;font-size:14px;margin-bottom:12px}
+label.field:last-child{margin-bottom:0}
+label.field > span{color:var(--muted);min-width:112px;font-size:13px}
+input,select,textarea,button{font:inherit}
+input[type=date],input[type=number],input[type=text],select,textarea{
+  border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 10px;font-size:14px;outline:none;color:var(--ink)
+}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+input[type=number]{width:64px;text-align:center}
+textarea{width:100%;resize:vertical;line-height:1.7}
+
+.row{background:var(--card);border-radius:14px;padding:12px;margin-bottom:9px;box-shadow:0 1px 2px rgba(16,24,40,.05)}
+.row-top{display:flex;gap:8px;margin-bottom:8px}
+.f-name{flex:1;min-width:0}
+.f-short{width:88px;flex:0 0 88px}
+.del{border:0;background:#f3f4f6;color:#9ca3af;border-radius:9px;width:32px;flex:0 0 32px;cursor:pointer;font-size:15px}
+.del:hover{background:#fee2e2;color:#b91c1c}
+.row-bot{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px;color:var(--muted)}
+.f-day,.f-p,.f-color{font-size:13px;padding:6px 8px}
+.wk{display:flex;align-items:center;gap:4px}
+.wk input{width:52px;padding:5px 4px;font-size:13px}
+.chk{display:flex;align-items:center;gap:5px;cursor:pointer}
+.chk input{width:15px;height:15px;accent-color:var(--accent)}
+
+#addCourse{border:0;background:var(--accent);color:#fff;font-size:12.5px;font-weight:650;padding:6px 12px;border-radius:9px;cursor:pointer;letter-spacing:0}
+.erow{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+.erow:last-child{border-bottom:none}
+.tcard{background:var(--card);border-radius:13px;padding:11px 13px;margin-bottom:8px;box-shadow:0 1px 2px rgba(16,24,40,.05)}
+.tcard summary{cursor:pointer;font-size:14px;font-weight:600;list-style:none;display:flex;justify-content:space-between}
+.tcard summary::-webkit-details-marker{display:none}
+.tcard summary .cnt{color:var(--muted);font-weight:400;font-size:12.5px}
+.tcard textarea{margin-top:10px}
+
+.btn{width:100%;border:0;background:var(--accent);color:#fff;font-weight:650;font-size:15px;padding:15px;border-radius:14px;cursor:pointer;box-shadow:0 4px 14px rgba(37,99,235,.25)}
+.btn:disabled{background:#c7d2fe;box-shadow:none;cursor:not-allowed}
+.btn2{width:100%;border:1px solid var(--line);background:#fff;color:#374151;font-weight:600;font-size:14px;padding:13px;border-radius:13px;cursor:pointer;margin-top:10px}
+.hint{font-size:12.5px;color:var(--muted);line-height:1.7;margin:10px 2px 0}
+.err{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;border-radius:14px;padding:14px;font-size:13.5px;line-height:1.7;margin-bottom:18px}
+.ok{background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46;border-radius:14px;padding:14px;font-size:13.5px;line-height:1.7;margin-bottom:18px}
+.foot{text-align:center;color:#c0c4cc;font-size:11px;margin-top:30px}
+code{background:#f3f4f6;padding:1px 5px;border-radius:5px;font-size:12.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>课表编辑器</h1>
+  <p class="sub">改完点最下面的按钮，下载一个新的 <code>index.html</code>，再传到 GitHub 覆盖旧文件。</p>
+
+  <div class="err" id="loadErr" hidden></div>
+  <div class="ok" id="doneMsg" hidden></div>
+
+  <div class="card">
+    <label class="field"><span>第 1 周从哪天开始</span><input type="date" id="weekStart"></label>
+    <label class="field"><span>学期一共几周</span><input type="number" id="totalWeeks" min="1" max="30"></label>
+    <p class="hint">这是“第 1 周周日”的日期。现在第 8 周对应 2026-10-25，所以第 1 周是 2026-09-06。改错了整个周次都会歪。</p>
+  </div>
+
+  <h2>课程 <button id="addCourse">+ 加一门</button></h2>
+  <div id="courseList"></div>
+
+  <h2>晚上安排</h2>
+  <div class="card" id="eveningList"></div>
+
+  <h2>每晚三件事</h2>
+  <div id="taskList"></div>
+
+  <h2>导出</h2>
+  <button class="btn" id="downloadBtn">下载新的 index.html</button>
+  <button class="btn2" id="resetBtn">放弃修改，重新读取</button>
+  <p class="hint">
+    下载之后：GitHub 仓库 → <b>Add file</b> → <b>Upload files</b> → 把下载的文件拖进去，同名会覆盖 → <b>Commit changes</b>。
+    等一分钟，刷新你的网址就是新的。
+  </p>
+
+  <div class="foot">这个编辑器只在你手机/电脑上跑，不联网上传任何东西</div>
+</div>
+
+<script>
+"use strict";
+
+const DAYS = ["周日","周一","周二","周三","周四","周五","周六"];
+const PERIODS = ["1–2 节","3–4 节","5–6 节","7–8 节"];
+const PALETTE = [
+  ["#dbeafe","#1d4ed8","蓝"],
+  ["#ede9fe","#5b21b6","紫"],
+  ["#fde2e2","#9b1c1c","红"],
+  ["#fef3c7","#92400e","黄"],
+  ["#dcfce7","#166534","绿"],
+  ["#e0f2fe","#075985","天蓝"],
+  ["#fae8ff","#86198f","品红"],
+  ["#ffedd5","#9a3412","橙"],
+  ["#e6f4ea","#1e6b3a","浅绿"],
+  ["#f3f4f6","#374151","灰"]
+];
+
+let data = null;
+let template = null;
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? "" : s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+
+function showErr(msg){
+  const el = $("loadErr");
+  el.hidden = false;
+  el.innerHTML = msg;
+}
+
+/* ---------- 读取 index.html 里的数据块 ---------- */
+async function loadSource(){
+  const url = "index.html?t=" + Date.now();
+  const res = await fetch(url, { cache:"no-store" });
+  if (!res.ok) throw new Error("index.html 返回 " + res.status);
+  const src = await res.text();
+  const m = src.match(/<script type="application\/json" id="app-data">([\s\S]*?)<\/script>/);
+  if (!m) throw new Error("在 index.html 里找不到 app-data 数据块");
+  return { src, json: m[1] };
+}
+
+async function boot(){
+  if (location.protocol === "file:") {
+    showErr("这个页面必须通过<b>网址</b>打开（比如 https://kin-tion.github.io/planner/editor.html），直接双击本地文件是读不到数据的 —— 浏览器不让本地网页读取旁边的文件。");
+    return;
+  }
+  try {
+    const { src, json } = await loadSource();
+    template = src;
+    data = JSON.parse(json);
+    if (!data.evening) data.evening = {};
+    if (!data.tasks) data.tasks = {};
+    render();
+    $("downloadBtn").disabled = false;
+  } catch (e) {
+    showErr("读取失败：" + e.message + "<br><br>检查一下：<code>editor.html</code> 和 <code>index.html</code> 是不是在同一个文件夹里。");
+  }
+}
+
+/* ---------- 渲染 ---------- */
+function render(){
+  $("weekStart").value = data.weekStart || "2026-09-06";
+  $("totalWeeks").value = data.totalWeeks || 18;
+
+  /* 课程 */
+  $("courseList").innerHTML = data.courses.map((c,i) => `
+    <div class="row" data-i="${i}">
+      <div class="row-top">
+        <input class="f-name" type="text" value="${esc(c.name)}" placeholder="课程全名，例如 高等数学A">
+        <input class="f-short" type="text" value="${esc(c.short)}" placeholder="简称" maxlength="8">
+        <button class="del" data-del="${i}" title="删除这门课">✕</button>
+      </div>
+      <div class="row-bot">
+        <select class="f-day">${DAYS.map((d,k)=>`<option value="${k}"${k===c.day?" selected":""}>${d}</option>`).join("")}</select>
+        <select class="f-p">${PERIODS.map((p,k)=>`<option value="${k}"${k===c.p?" selected":""}>${p}</option>`).join("")}</select>
+        <span class="wk">第 <input class="f-w0" type="number" value="${c.weeks[0]}" min="1" max="30"> – <input class="f-w1" type="number" value="${c.weeks[1]}" min="1" max="30"> 周</span>
+        <label class="chk"><input class="f-e2" type="checkbox"${c.every2?" checked":""}> 隔周上</label>
+        <select class="f-color">${PALETTE.map((p,k)=>`<option value="${k}"${p[0]===c.color?" selected":""}>${p[2]}</option>`).join("")}</select>
+      </div>
+    </div>`).join("");
+
+  /* 晚上 */
+  $("eveningList").innerHTML = DAYS.map((d,k) => {
+    const cur = data.evening[k] || "none";
+    return `<div class="erow"><span>${d}</span>
+      <select data-eve="${k}">
+        <option value="none"${cur==="none"?" selected":""}>没安排</option>
+        <option value="study"${cur==="study"?" selected":""}>晚自习</option>
+        <option value="train"${cur==="train"?" selected":""}>专业集训</option>
+      </select></div>`;
+  }).join("");
+
+  /* 三件事 */
+  $("taskList").innerHTML = DAYS.map((d,k) => {
+    const list = data.tasks[k] || [];
+    return `<details class="tcard" data-day="${k}">
+      <summary><span>${d}</span><span class="cnt">${list.length} 件</span></summary>
+      <textarea rows="4" data-task="${k}" placeholder="一行一件">${esc(list.join("\n"))}</textarea>
+    </details>`;
+  }).join("");
+}
+
+/* ---------- 交互 ---------- */
+function syncRow(row){
+  const i = +row.dataset.i;
+  const c = data.courses[i];
+  if (!c) return;
+  c.name  = row.querySelector(".f-name").value;
+  c.short = row.querySelector(".f-short").value;
+  c.day   = +row.querySelector(".f-day").value;
+  c.p     = +row.querySelector(".f-p").value;
+  const w0 = +row.querySelector(".f-w0").value || 1;
+  const w1 = +row.querySelector(".f-w1").value || 1;
+  c.weeks = [w0, w1];
+  c.every2 = row.querySelector(".f-e2").checked;
+  const pal = PALETTE[+row.querySelector(".f-color").value] || PALETTE[0];
+  c.color = pal[0]; c.ink = pal[1];
+}
+
+$("courseList").addEventListener("input", e => {
+  const row = e.target.closest(".row");
+  if (row) syncRow(row);
+});
+$("courseList").addEventListener("change", e => {
+  const row = e.target.closest(".row");
+  if (row) syncRow(row);
+});
+$("courseList").addEventListener("click", e => {
+  const btn = e.target.closest("[data-del]");
+  if (!btn) return;
+  const i = +btn.dataset.del;
+  const c = data.courses[i];
+  if (!confirm(`删除「${c.name || "这门课"}」？`)) return;
+  data.courses.splice(i,1);
+  render();
+});
+
+$("addCourse").addEventListener("click", () => {
+  data.courses.push({
+    name:"", short:"", day:1, p:0, weeks:[5,17], every2:false,
+    color:PALETTE[0][0], ink:PALETTE[0][1]
+  });
+  render();
+  const rows = $("courseList").querySelectorAll(".row");
+  const last = rows[rows.length-1];
+  if (last) { last.querySelector(".f-name").focus(); last.scrollIntoView({block:"center", behavior:"smooth"}); }
+});
+
+$("eveningList").addEventListener("change", e => {
+  const sel = e.target.closest("[data-eve]");
+  if (sel) data.evening[sel.dataset.eve] = sel.value;
+});
+
+$("taskList").addEventListener("input", e => {
+  const ta = e.target.closest("[data-task]");
+  if (!ta) return;
+  const k = ta.dataset.task;
+  data.tasks[k] = ta.value.split("\n").map(s => s.trim()).filter(Boolean);
+  const card = ta.closest(".tcard");
+  const cnt = card.querySelector(".cnt");
+  if (cnt) cnt.textContent = data.tasks[k].length + " 件";
+});
+
+$("weekStart").addEventListener("change", e => { data.weekStart = e.target.value; });
+$("totalWeeks").addEventListener("change", e => { data.totalWeeks = +e.target.value || 18; });
+$("resetBtn").addEventListener("click", () => location.reload());
+
+/* ---------- 导出 ---------- */
+function clean(d){
+  return {
+    weekStart: d.weekStart || "2026-09-06",
+    totalWeeks: +d.totalWeeks || 18,
+    courses: d.courses
+      .filter(c => (c.name || "").trim())
+      .map(c => ({
+        name: c.name.trim(),
+        short: (c.short || "").trim() || c.name.trim().slice(0,3),
+        day: +c.day,
+        p: +c.p,
+        weeks: [Math.min(+c.weeks[0], +c.weeks[1]), Math.max(+c.weeks[0], +c.weeks[1])],
+        every2: !!c.every2,
+        color: c.color,
+        ink: c.ink
+      })),
+    evening: d.evening,
+    tasks: d.tasks
+  };
+}
+
+function download(name, text){
+  const blob = new Blob([text], { type:"text/html;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+
+$("downloadBtn").addEventListener("click", () => {
+  if (!template) return;
+  const out = clean(data);
+  if (!out.courses.length) { alert("一门课都没有，先加几门吧。"); return; }
+
+  const json = "\n" + JSON.stringify(out, null, 2) + "\n";
+  const re = /(<script type="application\/json" id="app-data">)([\s\S]*?)(<\/script>)/;
+  const html = template.replace(re, (m, a, b, c) => a + json + c);
+
+  download("index.html", html);
+
+  const msg = $("doneMsg");
+  msg.hidden = false;
+  msg.innerHTML = `已下载 <code>index.html</code>（${out.courses.length} 门课）。<br>
+    接下来：GitHub 仓库 → <b>Add file</b> → <b>Upload files</b> → 拖进去覆盖 → <b>Commit changes</b>。`;
+  msg.scrollIntoView({ block:"center", behavior:"smooth" });
+});
+
+boot();
+</script>
+</body>
+</html>

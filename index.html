@@ -92,6 +92,7 @@ details{margin-top:22px;font-size:13px;color:var(--muted)}
 summary{cursor:pointer;font-weight:600;color:#374151}
 details p,details li{line-height:1.75}
 .foot{text-align:center;color:#c0c4cc;font-size:11px;margin-top:34px}
+a{color:var(--accent)}
 
 #days{display:none}
 @media (max-width:560px){
@@ -136,21 +137,60 @@ details p,details li{line-height:1.75}
   <p class="hint">网页关掉就不会响。点上面的按钮导出一个日历文件，用手机打开它、选择加入日历，之后课表和集训都会按时间提醒你。</p>
 
   <details>
-    <summary>怎么把这个页面放到手机上</summary>
-    <p><b>方式一（最简单）</b><br>把 <code>index.html</code> 用微信「文件传输助手」发给自己 → 手机上点开 → 选择「用浏览器打开」。</p>
-    <p><b>方式二（当 App 用）</b><br>在手机浏览器里打开后，Safari 点「分享 → 添加到主屏幕」，安卓 Chrome 点「⋮ → 添加到主屏幕」。图标会出现在桌面上，点开就是全屏，跟 App 一样。</p>
-    <p><b>方式三（有网址）</b><br>以后把文件传到 GitHub，开 Pages，就能得到一个真正的网址，换手机也不用再传文件。</p>
+    <summary>怎么放到手机桌面</summary>
+    <p>手机浏览器打开这个网址，菜单里选「<b>添加到主屏幕</b>」。安卓 Chrome 在右上角 <b>⋮</b>，夸克、QQ 浏览器类似。之后点桌面图标就是全屏，跟 App 一样。</p>
   </details>
 
-  <div class="foot">本地页面 · 数据只存在你的浏览器里</div>
+  <details>
+    <summary>想改课表怎么办</summary>
+    <p>打开 <a href="editor.html">编辑页</a>，改完点「下载新的 index.html」，再把这个文件传到 GitHub 覆盖旧的。等一分钟刷新本页，就是新的了。</p>
+  </details>
+
+  <div class="foot">数据写在页面里 · 勾选状态只存在你自己的浏览器</div>
 </div>
 
+<script type="application/json" id="app-data">
+{
+  "weekStart": "2026-09-06",
+  "totalWeeks": 18,
+  "courses": [
+    {"name":"电子技术基础","short":"电子技术","day":1,"p":0,"weeks":[5,16],"every2":false,"color":"#fde2e2","ink":"#9b1c1c"},
+    {"name":"电子技术基础","short":"电子技术","day":5,"p":3,"weeks":[5,16],"every2":false,"color":"#fde2e2","ink":"#9b1c1c"},
+    {"name":"大学生心理健康","short":"心理","day":1,"p":1,"weeks":[7,14],"every2":false,"color":"#e6f4ea","ink":"#1e6b3a"},
+    {"name":"C语言程序设计","short":"C语言","day":1,"p":2,"weeks":[5,17],"every2":false,"color":"#dbeafe","ink":"#1d4ed8"},
+    {"name":"C语言程序设计","short":"C语言","day":3,"p":0,"weeks":[5,17],"every2":false,"color":"#dbeafe","ink":"#1d4ed8"},
+    {"name":"C语言程序设计","short":"C语言","day":5,"p":0,"weeks":[5,17],"every2":false,"color":"#dbeafe","ink":"#1d4ed8"},
+    {"name":"高等数学A","short":"高数","day":1,"p":3,"weeks":[5,16],"every2":false,"color":"#ede9fe","ink":"#5b21b6"},
+    {"name":"高等数学A","short":"高数","day":3,"p":3,"weeks":[5,16],"every2":false,"color":"#ede9fe","ink":"#5b21b6"},
+    {"name":"高等数学A","short":"高数","day":5,"p":2,"weeks":[5,16],"every2":false,"color":"#ede9fe","ink":"#5b21b6"},
+    {"name":"大学英语","short":"英语","day":2,"p":1,"weeks":[5,15],"every2":false,"color":"#e0f2fe","ink":"#075985"},
+    {"name":"大学英语","short":"英语","day":4,"p":0,"weeks":[6,16],"every2":true,"color":"#e0f2fe","ink":"#075985"},
+    {"name":"思想道德与法治","short":"思修","day":2,"p":3,"weeks":[5,16],"every2":false,"color":"#fef3c7","ink":"#92400e"},
+    {"name":"思想道德与法治","short":"思修","day":4,"p":1,"weeks":[5,16],"every2":false,"color":"#fef3c7","ink":"#92400e"},
+    {"name":"体育(1)","short":"体育","day":3,"p":1,"weeks":[5,18],"every2":false,"color":"#dcfce7","ink":"#166534"},
+    {"name":"形势与政策","short":"形势政策","day":3,"p":2,"weeks":[11,13],"every2":false,"color":"#fae8ff","ink":"#86198f"},
+    {"name":"国家安全教育","short":"国家安全","day":5,"p":1,"weeks":[13,17],"every2":false,"color":"#ffedd5","ink":"#9a3412"}
+  ],
+  "evening": {"0":"study","1":"train","2":"study","3":"study","4":"train","5":"none","6":"none"},
+  "tasks": {
+    "0": ["晚自习：把下周要问学长的问题写在纸上","把本周做错的题重敲一遍","准备好下周要交的作业"],
+    "1": ["带上错题清单去集训（手机里存题号也行）","集训只做难题，卡住立刻问学长","回宿舍把没做出来的题敲一遍"],
+    "2": ["晚自习：手写一道 PTA 题，写完整代码","回宿舍敲进 PTA 验证","背 20 分钟英语单词"],
+    "3": ["晚自习：手写一道 PTA 题","回宿舍敲进 PTA 验证","整理今天 C 语言的笔记"],
+    "4": ["带上错题清单去集训","集训只做难题，卡住立刻问学长","回宿舍把没做出来的题敲一遍"],
+    "5": ["看一节黑马视频（下周要讲的）","把本周纸上写的代码全敲进 PTA","休息，别学"],
+    "6": ["补一节落下的视频","预习下周的课","休息，别学"]
+  }
+}
+</script>
 <script>
 "use strict";
 
 /* ============ 基础设置 ============ */
-const WEEK1_START = new Date(2026, 8, 6);       // 第 1 周 周日 = 2026-09-06
-const TOTAL_WEEKS  = 18;
+/* 所有课表数据都在页面顶部的 <script id="app-data"> 里，改那个就行 */
+const DATA = JSON.parse(document.getElementById("app-data").textContent);
+const WEEK1_START = (() => { const [y,m,d] = DATA.weekStart.split("-").map(Number); return new Date(y, m-1, d); })();
+const TOTAL_WEEKS  = DATA.totalWeeks || 18;
 const DAY_CN = ["周日","周一","周二","周三","周四","周五","周六"];
 
 const PERIODS = [
@@ -161,46 +201,18 @@ const PERIODS = [
 ];
 const EVENING = { s:"19:00", e:"21:00", label:"晚上" };
 
-/* ============ 课表数据 ============ */
-/* day: 0=周日 ... 6=周六 ; p: 0..3 对应 PERIODS ; weeks:[起,止] ; every2: 双周 */
-const COURSES = [
-  { name:"电子技术基础", short:"电子技术", day:1, p:0, weeks:[5,16], color:"#fde2e2", ink:"#9b1c1c" },
-  { name:"电子技术基础", short:"电子技术", day:5, p:3, weeks:[5,16], color:"#fde2e2", ink:"#9b1c1c" },
-  { name:"大学生心理健康", short:"心理", day:1, p:1, weeks:[7,14], color:"#e6f4ea", ink:"#1e6b3a" },
-  { name:"C语言程序设计", short:"C语言", day:1, p:2, weeks:[5,17], color:"#dbeafe", ink:"#1d4ed8" },
-  { name:"C语言程序设计", short:"C语言", day:3, p:0, weeks:[5,17], color:"#dbeafe", ink:"#1d4ed8" },
-  { name:"C语言程序设计", short:"C语言", day:5, p:0, weeks:[5,17], color:"#dbeafe", ink:"#1d4ed8" },
-  { name:"高等数学A",   short:"高数", day:1, p:3, weeks:[5,16], color:"#ede9fe", ink:"#5b21b6" },
-  { name:"高等数学A",   short:"高数", day:3, p:3, weeks:[5,16], color:"#ede9fe", ink:"#5b21b6" },
-  { name:"高等数学A",   short:"高数", day:5, p:2, weeks:[5,16], color:"#ede9fe", ink:"#5b21b6" },
-  { name:"大学英语",    short:"英语", day:2, p:1, weeks:[5,15], color:"#e0f2fe", ink:"#075985" },
-  { name:"大学英语",    short:"英语", day:4, p:0, weeks:[6,16], every2:true, color:"#e0f2fe", ink:"#075985" },
-  { name:"思想道德与法治", short:"思修", day:2, p:3, weeks:[5,16], color:"#fef3c7", ink:"#92400e" },
-  { name:"思想道德与法治", short:"思修", day:4, p:1, weeks:[5,16], color:"#fef3c7", ink:"#92400e" },
-  { name:"体育(1)",    short:"体育", day:3, p:1, weeks:[5,18], color:"#dcfce7", ink:"#166534" },
-  { name:"形势与政策",  short:"形势政策", day:3, p:2, weeks:[11,13], color:"#fae8ff", ink:"#86198f" },
-  { name:"国家安全教育", short:"国家安全", day:5, p:1, weeks:[13,17], color:"#ffedd5", ink:"#9a3412" }
-];
+/* ============ 课表数据（从 app-data 读取） ============ */
+const COURSES = DATA.courses || [];
 
-/* 晚上固定安排 */
-const EVENING_PLAN = {
-  0:{ name:"晚自习", kind:"study" },
-  1:{ name:"专业集训（PTA）", kind:"train" },
-  2:{ name:"晚自习", kind:"study" },
-  3:{ name:"晚自习", kind:"study" },
-  4:{ name:"专业集训（PTA）", kind:"train" }
-};
+/* 晚上固定安排：train = 集训，study = 晚自习，none = 空 */
+const EVENING_PLAN = {};
+for (const [day, kind] of Object.entries(DATA.evening || {})) {
+  if (kind === "train") EVENING_PLAN[day] = { name:"专业集训（PTA）", kind:"train" };
+  else if (kind === "study") EVENING_PLAN[day] = { name:"晚自习", kind:"study" };
+}
 
-/* 每晚三件事（按星期给默认值） */
-const TASK_TPL = {
-  0:["晚自习：把下周要问学长的问题写在纸上","把本周做错的题重敲一遍","准备好下周要交的作业"],
-  1:["带上错题清单去集训（手机里存题号也行）","集训只做难题，卡住立刻问学长","回宿舍把没做出来的题敲一遍"],
-  2:["晚自习：手写一道 PTA 题，写完整代码","回宿舍敲进 PTA 验证","背 20 分钟英语单词"],
-  3:["晚自习：手写一道 PTA 题","回宿舍敲进 PTA 验证","整理今天 C 语言的笔记"],
-  4:["带上错题清单去集训","集训只做难题，卡住立刻问学长","回宿舍把没做出来的题敲一遍"],
-  5:["看一节黑马视频（下周要讲的）","把本周纸上写的代码全敲进 PTA","休息，别学"],
-  6:["补一节落下的视频","预习下周的课","休息，别学"]
-};
+/* 每晚三件事 */
+const TASK_TPL = DATA.tasks || {};
 
 /* ============ 工具 ============ */
 const pad = n => String(n).padStart(2,"0");
