@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#ffffff" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="我的课表" />
+<title>我的课表</title>
+<style>
+:root{
+  --bg:#f5f6f8; --card:#fff; --ink:#111827; --muted:#6b7280; --line:#eceef2;
+  --accent:#2563eb; --accent-soft:#eef2ff; --warn:#f59e0b; --ok:#059669;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink); overflow-x:hidden;
+  font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei","Hiragino Sans GB",sans-serif;
+  -webkit-text-size-adjust:100%;
+}
+.wrap{max-width:720px;margin:0 auto;padding:0 14px calc(40px + env(safe-area-inset-bottom))}
+header{padding:20px 2px 4px}
+.h-top{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.wk{font-size:12px;color:var(--muted);letter-spacing:.06em;font-weight:600}
+.date{font-size:23px;font-weight:700;letter-spacing:-.02em}
+h2{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.1em;margin:28px 2px 10px}
+.card{background:var(--card);border-radius:16px;padding:16px;box-shadow:0 1px 2px rgba(16,24,40,.05),0 1px 3px rgba(16,24,40,.04)}
+
+/* 现在 */
+.now{padding:18px 18px 16px;background:linear-gradient(135deg,#1f2937,#111827);color:#fff;box-shadow:0 6px 20px rgba(17,24,39,.18)}
+.now .lbl{font-size:12px;opacity:.65;letter-spacing:.08em;font-weight:600}
+.now .ttl{font-size:20px;font-weight:700;margin:6px 0 2px;letter-spacing:-.01em}
+.now .meta{font-size:13px;opacity:.72}
+.now .bar{height:3px;background:rgba(255,255,255,.16);border-radius:3px;margin-top:14px;overflow:hidden}
+.now .bar i{display:block;height:100%;background:#60a5fa;border-radius:3px;transition:width .6s}
+.now.free{background:linear-gradient(135deg,#065f46,#047857)}
+
+/* 今天 */
+.item{display:flex;gap:12px;padding:11px 14px;background:var(--card);border-radius:13px;margin-bottom:8px;box-shadow:0 1px 2px rgba(16,24,40,.05);border-left:3px solid var(--line)}
+.item .t{font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted);width:46px;flex:0 0 46px;padding-top:1px}
+.item .n{font-weight:600;font-size:15px}
+.item .m{font-size:12.5px;color:var(--muted);margin-top:1px}
+.item.live{background:var(--accent-soft);border-left-color:var(--accent)}
+.item.done{opacity:.42}
+.item.train{border-left-color:#f59e0b}
+.item.study{border-left-color:#8b5cf6}
+.empty{color:var(--muted);font-size:14px;padding:6px 2px}
+.tag{font-size:11px;padding:1px 6px;border-radius:5px;background:#f3f4f6;color:#6b7280;margin-left:6px;vertical-align:1px}
+.tag.t2{background:#fef3c7;color:#92400e}
+.tag.t3{background:#ede9fe;color:#5b21b6}
+
+/* 周表 */
+.gwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:16px;background:var(--card);box-shadow:0 1px 2px rgba(16,24,40,.05)}
+table{border-collapse:separate;border-spacing:0;width:100%;table-layout:fixed;font-size:12px}
+th{position:sticky;top:0;background:var(--card);z-index:2;font-weight:600;color:var(--muted);padding:10px 4px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:4px;border-bottom:1px solid var(--line);vertical-align:top;height:56px}
+tr:last-child td{border-bottom:none}
+td.k{position:sticky;left:0;background:var(--card);z-index:1;color:var(--muted);font-size:11px;white-space:nowrap;padding-left:8px;width:64px;border-right:1px solid var(--line)}
+th.k{position:sticky;left:0;z-index:3;background:var(--card);border-right:1px solid var(--line);width:64px}
+td.today{background:#f8fafc}
+.ev{border-radius:7px;padding:5px 6px;margin-bottom:3px;line-height:1.35}
+.ev b{display:block;font-size:11.5px;font-weight:650}
+.ev span{font-size:10.5px;color:#6b7280}
+
+/* 手机上的按天列表 */
+.daycard{background:var(--card);border-radius:14px;padding:12px 13px;margin-bottom:8px;box-shadow:0 1px 2px rgba(16,24,40,.05)}
+.daycard.today{box-shadow:0 0 0 2px #dbeafe,0 1px 2px rgba(16,24,40,.05)}
+.daycard .dh{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.06em;margin-bottom:9px;display:flex;justify-content:space-between}
+.daycard .dh b{color:var(--ink);letter-spacing:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:12.5px;padding:4px 9px;border-radius:8px;font-weight:650;white-space:nowrap}
+.chip i{font-style:normal;font-weight:500;opacity:.7;margin-right:5px;font-variant-numeric:tabular-nums}
+
+/* 任务 */
+.task{display:flex;align-items:flex-start;gap:10px;padding:11px 14px;background:var(--card);border-radius:13px;margin-bottom:8px;box-shadow:0 1px 2px rgba(16,24,40,.05)}
+.task input{appearance:none;width:19px;height:19px;flex:0 0 19px;border:1.6px solid #cbd5e1;border-radius:6px;margin:1px 0 0;cursor:pointer;position:relative;transition:.15s}
+.task input:checked{background:var(--ok);border-color:var(--ok)}
+.task input:checked::after{content:"";position:absolute;left:6px;top:2px;width:5px;height:10px;border:2px solid #fff;border-top:0;border-left:0;transform:rotate(43deg)}
+.task label{font-size:14.5px;cursor:pointer;flex:1}
+.task input:checked+label{text-decoration:line-through;color:#9ca3af}
+.addrow{display:flex;gap:8px;margin-top:4px}
+.addrow input{flex:1;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:11px 13px;font:inherit;font-size:14px;outline:none}
+.addrow input:focus{border-color:var(--accent)}
+.addrow button{border:0;background:var(--ink);color:#fff;border-radius:12px;width:46px;font-size:19px;cursor:pointer}
+
+/* 底部 */
+.btn{width:100%;border:0;background:var(--accent);color:#fff;font:inherit;font-weight:650;font-size:15px;padding:15px;border-radius:14px;cursor:pointer;box-shadow:0 4px 14px rgba(37,99,235,.25)}
+.btn:active{transform:translateY(1px)}
+.hint{font-size:12.5px;color:var(--muted);margin:10px 2px 0;line-height:1.6}
+details{margin-top:22px;font-size:13px;color:var(--muted)}
+summary{cursor:pointer;font-weight:600;color:#374151}
+details p,details li{line-height:1.75}
+.foot{text-align:center;color:#c0c4cc;font-size:11px;margin-top:34px}
+
+#days{display:none}
+@media (max-width:560px){
+  .gwrap{display:none}
+  #days{display:block}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="h-top">
+      <span class="wk" id="wkLabel">第 8 周</span>
+      <span class="date" id="dateLabel">10月25日 周日</span>
+    </div>
+  </header>
+
+  <section class="now" id="nowCard">
+    <div class="lbl" id="nowLbl">现在</div>
+    <div class="ttl" id="nowTtl">—</div>
+    <div class="meta" id="nowMeta"></div>
+    <div class="bar"><i id="nowBar" style="width:0%"></i></div>
+  </section>
+
+  <h2>今天</h2>
+  <div id="today"></div>
+
+  <h2>一周</h2>
+  <div id="days"></div>
+  <div class="gwrap"><table id="grid"></table></div>
+
+  <h2>今晚三件事</h2>
+  <div id="tasks"></div>
+  <div class="addrow">
+    <input id="newTask" placeholder="再加一件…" enterkeyhint="done" />
+    <button id="addBtn" aria-label="添加">＋</button>
+  </div>
+
+  <h2>提醒</h2>
+  <button class="btn" id="icsBtn">导入手机日历（会真的响）</button>
+  <p class="hint">网页关掉就不会响。点上面的按钮导出一个日历文件，用手机打开它、选择加入日历，之后课表和集训都会按时间提醒你。</p>
+
+  <details>
+    <summary>怎么把这个页面放到手机上</summary>
+    <p><b>方式一（最简单）</b><br>把 <code>index.html</code> 用微信「文件传输助手」发给自己 → 手机上点开 → 选择「用浏览器打开」。</p>
+    <p><b>方式二（当 App 用）</b><br>在手机浏览器里打开后，Safari 点「分享 → 添加到主屏幕」，安卓 Chrome 点「⋮ → 添加到主屏幕」。图标会出现在桌面上，点开就是全屏，跟 App 一样。</p>
+    <p><b>方式三（有网址）</b><br>以后把文件传到 GitHub，开 Pages，就能得到一个真正的网址，换手机也不用再传文件。</p>
+  </details>
+
+  <div class="foot">本地页面 · 数据只存在你的浏览器里</div>
+</div>
+
+<script>
+"use strict";
+
+/* ============ 基础设置 ============ */
+const WEEK1_START = new Date(2026, 8, 6);       // 第 1 周 周日 = 2026-09-06
+const TOTAL_WEEKS  = 18;
+const DAY_CN = ["周日","周一","周二","周三","周四","周五","周六"];
+
+const PERIODS = [
+  { label:"1–2 节", s:"08:00", e:"09:40" },
+  { label:"3–4 节", s:"10:00", e:"11:40" },
+  { label:"5–6 节", s:"14:00", e:"15:40" },
+  { label:"7–8 节", s:"16:00", e:"17:40" }
+];
+const EVENING = { s:"19:00", e:"21:00", label:"晚上" };
+
+/* ============ 课表数据 ============ */
+/* day: 0=周日 ... 6=周六 ; p: 0..3 对应 PERIODS ; weeks:[起,止] ; every2: 双周 */
+const COURSES = [
+  { name:"电子技术基础", short:"电子技术", day:1, p:0, weeks:[5,16], color:"#fde2e2", ink:"#9b1c1c" },
+  { name:"电子技术基础", short:"电子技术", day:5, p:3, weeks:[5,16], color:"#fde2e2", ink:"#9b1c1c" },
+  { name:"大学生心理健康", short:"心理", day:1, p:1, weeks:[7,14], color:"#e6f4ea", ink:"#1e6b3a" },
+  { name:"C语言程序设计", short:"C语言", day:1, p:2, weeks:[5,17], color:"#dbeafe", ink:"#1d4ed8" },
+  { name:"C语言程序设计", short:"C语言", day:3, p:0, weeks:[5,17], color:"#dbeafe", ink:"#1d4ed8" },
+  { name:"C语言程序设计", short:"C语言", day:5, p:0, weeks:[5,17], color:"#dbeafe", ink:"#1d4ed8" },
+  { name:"高等数学A",   short:"高数", day:1, p:3, weeks:[5,16], color:"#ede9fe", ink:"#5b21b6" },
+  { name:"高等数学A",   short:"高数", day:3, p:3, weeks:[5,16], color:"#ede9fe", ink:"#5b21b6" },
+  { name:"高等数学A",   short:"高数", day:5, p:2, weeks:[5,16], color:"#ede9fe", ink:"#5b21b6" },
+  { name:"大学英语",    short:"英语", day:2, p:1, weeks:[5,15], color:"#e0f2fe", ink:"#075985" },
+  { name:"大学英语",    short:"英语", day:4, p:0, weeks:[6,16], every2:true, color:"#e0f2fe", ink:"#075985" },
+  { name:"思想道德与法治", short:"思修", day:2, p:3, weeks:[5,16], color:"#fef3c7", ink:"#92400e" },
+  { name:"思想道德与法治", short:"思修", day:4, p:1, weeks:[5,16], color:"#fef3c7", ink:"#92400e" },
+  { name:"体育(1)",    short:"体育", day:3, p:1, weeks:[5,18], color:"#dcfce7", ink:"#166534" },
+  { name:"形势与政策",  short:"形势政策", day:3, p:2, weeks:[11,13], color:"#fae8ff", ink:"#86198f" },
+  { name:"国家安全教育", short:"国家安全", day:5, p:1, weeks:[13,17], color:"#ffedd5", ink:"#9a3412" }
+];
+
+/* 晚上固定安排 */
+const EVENING_PLAN = {
+  0:{ name:"晚自习", kind:"study" },
+  1:{ name:"专业集训（PTA）", kind:"train" },
+  2:{ name:"晚自习", kind:"study" },
+  3:{ name:"晚自习", kind:"study" },
+  4:{ name:"专业集训（PTA）", kind:"train" }
+};
+
+/* 每晚三件事（按星期给默认值） */
+const TASK_TPL = {
+  0:["晚自习：把下周要问学长的问题写在纸上","把本周做错的题重敲一遍","准备好下周要交的作业"],
+  1:["带上错题清单去集训（手机里存题号也行）","集训只做难题，卡住立刻问学长","回宿舍把没做出来的题敲一遍"],
+  2:["晚自习：手写一道 PTA 题，写完整代码","回宿舍敲进 PTA 验证","背 20 分钟英语单词"],
+  3:["晚自习：手写一道 PTA 题","回宿舍敲进 PTA 验证","整理今天 C 语言的笔记"],
+  4:["带上错题清单去集训","集训只做难题，卡住立刻问学长","回宿舍把没做出来的题敲一遍"],
+  5:["看一节黑马视频（下周要讲的）","把本周纸上写的代码全敲进 PTA","休息，别学"],
+  6:["补一节落下的视频","预习下周的课","休息，别学"]
+};
+
+/* ============ 工具 ============ */
+const pad = n => String(n).padStart(2,"0");
+const addDays = (d,n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
+const atTime = (base, hm) => {
+  const [h,m] = hm.split(":").map(Number);
+  const x = new Date(base); x.setHours(h,m,0,0); return x;
+};
+const sameDay = (a,b) => a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+
+function weekOf(date){
+  const ms = new Date(date.getFullYear(),date.getMonth(),date.getDate()) - new Date(WEEK1_START.getFullYear(),WEEK1_START.getMonth(),WEEK1_START.getDate());
+  return Math.floor(ms / (7*864e5)) + 1;
+}
+
+function coursesOn(day, week){
+  return COURSES.filter(c =>
+    c.day === day &&
+    week >= c.weeks[0] && week <= c.weeks[1] &&
+    (!c.every2 || (week - c.weeks[0]) % 2 === 0)
+  );
+}
+
+/* 某天所有安排，带起止时间 */
+function blocksOn(date){
+  const day  = date.getDay();
+  const week = weekOf(date);
+  const out = [];
+
+  if (week >= 1 && week <= TOTAL_WEEKS) {
+    for (const c of coursesOn(day, week)) {
+      const P = PERIODS[c.p];
+      out.push({
+        name: c.name, short: c.short, sub: P.label,
+        start: atTime(date, P.s), end: atTime(date, P.e), kind: "class", color: c.color, ink: c.ink
+      });
+    }
+    const ev = EVENING_PLAN[day];
+    if (ev) {
+      out.push({
+        name: ev.name, short: ev.name, sub: "19:00–21:00",
+        start: atTime(date, EVENING.s), end: atTime(date, EVENING.e), kind: ev.kind
+      });
+    }
+  }
+  return out.sort((a,b)=>a.start-b.start);
+}
+
+const fmtHM = d => pad(d.getHours()) + ":" + pad(d.getMinutes());
+function humanLeft(ms){
+  const m = Math.max(0, Math.round(ms/60000));
+  if (m < 1) return "不到 1 分钟";
+  if (m < 60) return m + " 分钟";
+  const h = Math.floor(m/60), r = m%60;
+  return r ? `${h} 小时 ${r} 分` : `${h} 小时`;
+}
+
+/* ============ 渲染：顶部 ============ */
+const now = new Date();
+const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+const thisWeek = weekOf(today);
+
+document.getElementById("wkLabel").textContent =
+  thisWeek < 1 ? "还没开学" : thisWeek > TOTAL_WEEKS ? "学期已结束" : `第 ${thisWeek} 周`;
+document.getElementById("dateLabel").textContent =
+  `${today.getMonth()+1}月${today.getDate()}日 ${DAY_CN[today.getDay()]}`;
+
+/* ============ 渲染：现在 ============ */
+function renderNow(){
+  const list = blocksOn(today);
+  const card = document.getElementById("nowCard");
+  const lbl  = document.getElementById("nowLbl");
+  const ttl  = document.getElementById("nowTtl");
+  const meta = document.getElementById("nowMeta");
+  const bar  = document.getElementById("nowBar");
+
+  const live = list.find(b => now >= b.start && now < b.end);
+  if (live) {
+    const total = live.end - live.start;
+    const pct = Math.max(0, Math.min(100, (now - live.start) / total * 100));
+    card.classList.remove("free");
+    lbl.textContent = "正在进行";
+    ttl.textContent = live.name;
+    meta.textContent = `${live.sub} · 还剩 ${humanLeft(live.end - now)}`;
+    bar.style.width = pct + "%";
+    return;
+  }
+  const next = list.find(b => b.start > now);
+  if (next) {
+    card.classList.remove("free");
+    lbl.textContent = "接下来";
+    ttl.textContent = next.name;
+    meta.textContent = `${fmtHM(next.start)} 开始 · 还有 ${humanLeft(next.start - now)}`;
+    bar.style.width = "0%";
+    return;
+  }
+  card.classList.add("free");
+  lbl.textContent = "今天";
+  ttl.textContent = "结束了";
+  meta.textContent = list.length ? "剩下的时间是你自己的" : "今天没有课";
+  bar.style.width = "0%";
+}
+
+/* ============ 渲染：今天 ============ */
+function renderToday(){
+  const box = document.getElementById("today");
+  const list = blocksOn(today);
+  if (!list.length) { box.innerHTML = `<div class="empty">今天没有课，也没有集训。</div>`; return; }
+
+  box.innerHTML = list.map(b => {
+    const live = now >= b.start && now < b.end;
+    const done = now >= b.end;
+    const cls = ["item", live?"live":"", done?"done":"", b.kind==="train"?"train":"", b.kind==="study"?"study":""].join(" ");
+    const tag = b.kind==="train" ? `<span class="tag t2">集训</span>`
+              : b.kind==="study" ? `<span class="tag t3">有查人</span>` : "";
+    return `<div class="${cls}">
+      <div class="t">${fmtHM(b.start)}</div>
+      <div><div class="n">${b.name}${tag}</div><div class="m">${b.sub}</div></div>
+    </div>`;
+  }).join("");
+}
+
+/* ============ 渲染：周表 ============ */
+function renderGrid(){
+  const t = document.getElementById("grid");
+  let html = "<thead><tr><th class='k'>节次</th>";
+  for (let d=0; d<7; d++){
+    html += `<th${d===today.getDay()?" style='color:#2563eb'":""}>${DAY_CN[d].replace("周","")}</th>`;
+  }
+  html += "</tr></thead><tbody>";
+
+  for (let p=0; p<PERIODS.length; p++){
+    const P = PERIODS[p];
+    html += `<tr><td class="k">${P.label}<br><span style="font-size:10px">${P.s}</span></td>`;
+    for (let d=0; d<7; d++){
+      const cs = coursesOn(d, thisWeek);
+      const hit = cs.filter(c => c.p === p);
+      html += `<td class="${d===today.getDay()?"today":""}">` + hit.map(c =>
+        `<div class="ev" style="background:${c.color};color:${c.ink}"><b>${c.short}</b></div>`
+      ).join("") + `</td>`;
+    }
+    html += "</tr>";
+  }
+  /* 晚上一行 */
+  html += `<tr><td class="k">晚上<br><span style="font-size:10px">19:00</span></td>`;
+  for (let d=0; d<7; d++){
+    const ev = EVENING_PLAN[d];
+    html += `<td class="${d===today.getDay()?"today":""}">` + (ev
+      ? `<div class="ev" style="background:${ev.kind==="train"?"#fef3c7":"#ede9fe"};color:${ev.kind==="train"?"#92400e":"#5b21b6"}"><b>${ev.kind==="train"?"集训":"晚自习"}</b><span>19:00–21:00</span></div>`
+      : "") + `</td>`;
+  }
+  html += "</tr></tbody>";
+  t.innerHTML = html;
+}
+
+/* ============ 渲染：手机上按天列表 ============ */
+function chipsForDay(day){
+  const out = [];
+  for (const c of coursesOn(day, thisWeek)){
+    const P = PERIODS[c.p];
+    out.push({ at:P.s, label:P.label.replace(" 节",""), name:c.short, bg:c.color, ink:c.ink });
+  }
+  const ev = EVENING_PLAN[day];
+  if (ev) out.push({
+    at:"19:00", label:"19–21", name: ev.kind==="train" ? "集训" : "晚自习",
+    bg: ev.kind==="train" ? "#fef3c7" : "#ede9fe",
+    ink: ev.kind==="train" ? "#92400e" : "#5b21b6"
+  });
+  return out.sort((a,b) => a.at.localeCompare(b.at));
+}
+
+function renderDays(){
+  const order = [1,2,3,4,5,6,0];
+  document.getElementById("days").innerHTML = order.map(d => {
+    const chips = chipsForDay(d);
+    const isToday = d === today.getDay();
+    const body = chips.length
+      ? `<div class="chips">${chips.map(c =>
+          `<span class="chip" style="background:${c.bg};color:${c.ink}"><i>${c.label}</i>${c.name}</span>`
+        ).join("")}</div>`
+      : `<div class="empty" style="padding:0;font-size:13px">没课</div>`;
+    return `<div class="daycard${isToday?" today":""}">
+      <div class="dh"><span>${DAY_CN[d]}${isToday?" · 今天":""}</span><b>${chips.length} 项</b></div>
+      ${body}
+    </div>`;
+  }).join("");
+}
+
+/* ============ 任务 ============ */
+const todayKey = `plan-${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
+function loadTasks(){
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(todayKey) || "null"); } catch(e){}
+  if (saved && Array.isArray(saved) && saved.length) return saved;
+  return (TASK_TPL[today.getDay()] || []).map(t => ({ t, done:false }));
+}
+let tasks = loadTasks();
+function saveTasks(){ try { localStorage.setItem(todayKey, JSON.stringify(tasks)); } catch(e){} }
+
+function renderTasks(){
+  const box = document.getElementById("tasks");
+  box.innerHTML = tasks.map((x,i) =>
+    `<div class="task"><input type="checkbox" id="tk${i}" ${x.done?"checked":""}><label for="tk${i}">${x.t.replace(/</g,"&lt;")}</label></div>`
+  ).join("");
+  tasks.forEach((x,i)=>{
+    document.getElementById("tk"+i).addEventListener("change", e => {
+      tasks[i].done = e.target.checked; saveTasks();
+    });
+  });
+}
+
+document.getElementById("addBtn").addEventListener("click", () => {
+  const inp = document.getElementById("newTask");
+  const v = inp.value.trim();
+  if (!v) return;
+  tasks.push({ t:v, done:false });
+  inp.value = "";
+  saveTasks(); renderTasks();
+});
+document.getElementById("newTask").addEventListener("keydown", e => {
+  if (e.key === "Enter") document.getElementById("addBtn").click();
+});
+
+/* ============ 导出 .ics ============ */
+function icsStamp(d){
+  return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+}
+function esc(s){
+  return String(s).replace(/\\/g,"\\\\").replace(/;/g,"\\;").replace(/,/g,"\\,").replace(/\n/g,"\\n");
+}
+
+function buildICS(){
+  const L = [];
+  const push = s => L.push(s);
+  push("BEGIN:VCALENDAR");
+  push("VERSION:2.0");
+  push("PRODID:-//My Planner//CN");
+  push("CALSCALE:GREGORIAN");
+  push("METHOD:PUBLISH");
+  push("X-WR-CALNAME:我的课表");
+  push("X-WR-TIMEZONE:Asia/Shanghai");
+  push("BEGIN:VTIMEZONE");
+  push("TZID:Asia/Shanghai");
+  push("BEGIN:STANDARD");
+  push("DTSTART:19700101T000000");
+  push("TZOFFSETFROM:+0800");
+  push("TZOFFSETTO:+0800");
+  push("TZNAME:CST");
+  push("END:STANDARD");
+  push("END:VTIMEZONE");
+
+  let uid = 0;
+  const event = ({summary, desc, start, end, count, interval, alarmMin}) => {
+    push("BEGIN:VEVENT");
+    push(`UID:plan-${++uid}-${icsStamp(start)}@local`);
+    push(`DTSTAMP:${new Date().toISOString().replace(/[-:]/g,"").split(".")[0]}Z`);
+    push(`SUMMARY:${esc(summary)}`);
+    if (desc) push(`DESCRIPTION:${esc(desc)}`);
+    push(`DTSTART;TZID=Asia/Shanghai:${icsStamp(start)}`);
+    push(`DTEND;TZID=Asia/Shanghai:${icsStamp(end)}`);
+    if (count > 1) push(`RRULE:FREQ=WEEKLY;${interval>1?`INTERVAL=${interval};`:""}COUNT=${count}`);
+    if (alarmMin) {
+      push("BEGIN:VALARM");
+      push(`TRIGGER:-PT${alarmMin}M`);
+      push("ACTION:DISPLAY");
+      push(`DESCRIPTION:${esc(summary)}`);
+      push("END:VALARM");
+    }
+    push("END:VEVENT");
+  };
+
+  /* 课程 */
+  for (const c of COURSES){
+    const [w0,w1] = c.weeks;
+    const iv = c.every2 ? 2 : 1;
+    const count = Math.floor((w1 - w0) / iv) + 1;
+    const first = addDays(WEEK1_START, (w0-1)*7 + c.day);
+    const P = PERIODS[c.p];
+    event({
+      summary: c.name,
+      desc: `第 ${w0}–${w1} 周`,
+      start: atTime(first, P.s),
+      end: atTime(first, P.e),
+      count, interval: iv, alarmMin: 10
+    });
+  }
+
+  /* 集训 / 晚自习 */
+  const evDays = [[1,"专业集训（PTA）",15],[4,"专业集训（PTA）",15],[0,"晚自习",5],[2,"晚自习",5],[3,"晚自习",5]];
+  for (const [day, name, alarm] of evDays){
+    const first = addDays(WEEK1_START, (5-1)*7 + day);
+    event({
+      summary: name,
+      desc: day===1 || day===4 ? "带上错题清单，只做难题，卡住就问学长" : "手写代码，别带电脑也照样练",
+      start: atTime(first, EVENING.s),
+      end: atTime(first, EVENING.e),
+      count: 14, interval: 1, alarmMin: alarm
+    });
+  }
+
+  push("END:VCALENDAR");
+  return L.join("\r\n");
+}
+
+document.getElementById("icsBtn").addEventListener("click", () => {
+  const blob = new Blob(["\ufeff" + buildICS()], { type:"text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "我的课表.ics";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 3000);
+});
+
+/* ============ 启动 ============ */
+renderNow();
+renderToday();
+renderGrid();
+renderDays();
+renderTasks();
+setInterval(renderNow, 30000);
+</script>
+</body>
+</html>
